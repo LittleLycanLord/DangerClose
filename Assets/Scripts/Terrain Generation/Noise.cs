@@ -4,36 +4,37 @@ using LilLycanLord_Official;
 
 namespace LilLycanLord_Official
 {
-    public static class Noise {
+    public static class Noise
+    {
         public enum NormalizationMode { Local, Global };
-        
+
         //* ╔════════════╗
         //* ║ Components ║
         //* ╚════════════╝
-	    // Any references to any component/class should be placed here, serialized or not.
+        // Any references to any component/class should be placed here, serialized or not.
 
         //* ╔════════════╗
         //* ║ Attributes ║
         //* ╚════════════╝
-	    // Any non-component variables NOT SHOWN in the Inspector should be placed here.
+        // Any non-component variables NOT SHOWN in the Inspector should be placed here.
 
         //* ╔══════════╗
         //* ║ Displays ║
         //* ╚══════════╝
         // [Header("Displays")]
-	    // Any non-component READ-ONLY variables SHOWN in the Inspector should be placed here.
+        // Any non-component READ-ONLY variables SHOWN in the Inspector should be placed here.
 
         //* ╔════════╗
         //* ║ Fields ║
         //* ╚════════╝
         // [Space(10)]
         // [Header("Fields")]
-    	// Any non-component READ-WRITE variables SHOWN in the Inspector should be placed here.
+        // Any non-component READ-WRITE variables SHOWN in the Inspector should be placed here.
 
         //* ╔═══════════════╗
         //* ║ Monobehaviour ║
         //* ╚═══════════════╝
-	    // Any Monobehaviour functions should be placed here.
+        // Any Monobehaviour functions should be placed here.
         // void Awake() { }
 
         // void Start() { }
@@ -110,7 +111,7 @@ namespace LilLycanLord_Official
             {
                 for (int x = 0; x < mapWidth; x++)
                 {
-                    switch(normalizationMode)
+                    switch (normalizationMode)
                     {
                         case NormalizationMode.Local:
                             noiseMap[x, y] = Mathf.InverseLerp(minimumLocalNoiseHeight, maximumLocalNoiseHeight, noiseMap[x, y]);
@@ -124,12 +125,12 @@ namespace LilLycanLord_Official
                 }
             }
 
-            return noiseMap;   
+            return noiseMap;
         }
         //* ╔════════════════════════════════╗
         //* ║ Virtual / Overridden Functions ║
         //* ╚════════════════════════════════╝
-	    // Any Abstract/virtual functions or overrides should be placed here.
+        // Any Abstract/virtual functions or overrides should be placed here.
 
     }
 }

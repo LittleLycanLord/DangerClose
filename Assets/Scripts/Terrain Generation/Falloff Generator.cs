@@ -61,7 +61,7 @@ namespace LilLycanLord_Official
         //* ╚══════════╝
         // Any non-component READ-ONLY variables SHOWN in the Inspector should be placed here.
         // [Header("Displays")]
-    
+
         //* ╔════════╗
         //* ║ Fields ║
         //* ╚════════╝
@@ -112,17 +112,17 @@ namespace LilLycanLord_Official
         // Any Monobehaviour functions should be placed here.
         // void Awake() 
         // {
-        
+
         // }
 
         // void Start() 
         // {
-        
+
         // }
 
         // void Update() 
         // {
-        
+
         // }
 
         //* ╔═════════════════════╗

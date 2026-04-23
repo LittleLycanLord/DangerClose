@@ -9,7 +9,7 @@ namespace LilLycanLord_Official
         //* ╔════════════╗
         //* ║ Components ║
         //* ╚════════════╝
-	    // Any references to any component/class should be placed here, serialized or not.
+        // Any references to any component/class should be placed here, serialized or not.
         public Renderer targetTextureRenderer;
         public MeshFilter targetMeshFilter;
         public MeshRenderer targetMeshRenderer;
@@ -18,18 +18,18 @@ namespace LilLycanLord_Official
         //* ╔════════════╗
         //* ║ Attributes ║
         //* ╚════════════╝
-    	// Any non-component variables NOT SHOWN in the Inspector should be placed here.
+        // Any non-component variables NOT SHOWN in the Inspector should be placed here.
 
         //* ╔══════════╗
         //* ║ Displays ║
         //* ╚══════════╝
         // Any non-component READ-ONLY variables SHOWN in the Inspector should be placed here.
-	    // [Header("Displays")]
-	
+        // [Header("Displays")]
+
         //* ╔════════╗
         //* ║ Fields ║
         //* ╚════════╝
-	    // Any non-component READ-WRITE variables SHOWN in the Inspector should be placed here.
+        // Any non-component READ-WRITE variables SHOWN in the Inspector should be placed here.
         [Space(10)]
         [Header("Fields")]
         [SerializeField]
@@ -38,24 +38,24 @@ namespace LilLycanLord_Official
         //* ╔═══════════════╗
         //* ║ Monobehaviour ║
         //* ╚═══════════════╝
-	    // Any Monobehaviour functions should be placed here.
-        void Awake() 
+        // Any Monobehaviour functions should be placed here.
+        void Awake()
         {
 
         }
 
         void Start()
-        { 
-            if(GetComponent<EndlessTerrainGenerator>() != null)
+        {
+            if (GetComponent<EndlessTerrainGenerator>() != null)
             {
-                if(targetMeshRenderer != null) targetMeshRenderer.gameObject.SetActive(false);
-                if(targetMeshFilter != null) targetMeshFilter.gameObject.SetActive(false);
-                if(targetMeshCollider != null) targetMeshCollider.gameObject.SetActive(false);
-                if(targetTextureRenderer != null) targetTextureRenderer.gameObject.SetActive(false);            
+                if (targetMeshRenderer != null) targetMeshRenderer.gameObject.SetActive(false);
+                if (targetMeshFilter != null) targetMeshFilter.gameObject.SetActive(false);
+                if (targetMeshCollider != null) targetMeshCollider.gameObject.SetActive(false);
+                if (targetTextureRenderer != null) targetTextureRenderer.gameObject.SetActive(false);
             }
         }
 
-        void Update() 
+        void Update()
         {
 
         }
@@ -63,15 +63,15 @@ namespace LilLycanLord_Official
         //* ╔═════════════════════╗
         //* ║ Non - Monobehaviour ║
         //* ╚═════════════════════╝
-	    // Any Non-Monobehaviour/custom functions should be placed here.
-    	// Note: Abstract/virtual functions or overrides have a separate section.
+        // Any Non-Monobehaviour/custom functions should be placed here.
+        // Note: Abstract/virtual functions or overrides have a separate section.
         public void DrawTexture(Texture2D texture)
         {
-            if(targetMeshRenderer != null) targetMeshRenderer.gameObject.SetActive(false);
-            if(targetMeshFilter != null) targetMeshFilter.gameObject.SetActive(false);
-            if(targetMeshCollider != null) targetMeshCollider.gameObject.SetActive(false);
+            if (targetMeshRenderer != null) targetMeshRenderer.gameObject.SetActive(false);
+            if (targetMeshFilter != null) targetMeshFilter.gameObject.SetActive(false);
+            if (targetMeshCollider != null) targetMeshCollider.gameObject.SetActive(false);
 
-            if(targetTextureRenderer == null) return;
+            if (targetTextureRenderer == null) return;
 
             targetTextureRenderer.gameObject.SetActive(true);
 
@@ -81,9 +81,9 @@ namespace LilLycanLord_Official
 
         public void DrawMesh(MeshData meshData, Texture2D texture)
         {
-            if(targetTextureRenderer != null) targetTextureRenderer.gameObject.SetActive(false);
+            if (targetTextureRenderer != null) targetTextureRenderer.gameObject.SetActive(false);
 
-            if(targetMeshFilter == null || targetMeshRenderer == null || targetMeshCollider == null) return;
+            if (targetMeshFilter == null || targetMeshRenderer == null || targetMeshCollider == null) return;
 
             targetMeshFilter.gameObject.SetActive(true);
             targetMeshRenderer.gameObject.SetActive(true);
@@ -103,7 +103,7 @@ namespace LilLycanLord_Official
         //* ╔════════════════════════════════╗
         //* ║ Virtual / Overridden Functions ║
         //* ╚════════════════════════════════╝
-	// Any Abstract/virtual functions or overrides should be placed here.
+        // Any Abstract/virtual functions or overrides should be placed here.
 
     }
 }

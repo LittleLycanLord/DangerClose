@@ -18,7 +18,7 @@ namespace LilLycanLord_Official
         //* ╔════════════╗
         //* ║ Attributes ║
         //* ╚════════════╝
-	    // Any non-component variables NOT SHOWN in the Inspector should be placed here.
+        // Any non-component variables NOT SHOWN in the Inspector should be placed here.
         [HideInInspector]
         //: Note: This position is along the XZ plane.
         public static Vector2 viewerPosition;
@@ -28,20 +28,20 @@ namespace LilLycanLord_Official
         public Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
         [HideInInspector]
         static List<TerrainChunk> terrainChunksVisibleLastUpdate = new List<TerrainChunk>();
-        
+
 
         //* ╔══════════╗
         //* ║ Displays ║
         //* ╚══════════╝
         // Any non-component READ-ONLY variables SHOWN in the Inspector should be placed here.
-	    [Header("Displays")]
+        [Header("Displays")]
         public int chunksVisibleInViewDistance = 5;
         public static float maxViewDistance = 450;
 
         //* ╔════════╗
         //* ║ Fields ║
         //* ╚════════╝
-	    // Any non-component READ-WRITE variables SHOWN in the Inspector should be placed here.
+        // Any non-component READ-WRITE variables SHOWN in the Inspector should be placed here.
         [Space(10)]
         [Header("Fields")]
         public float minimumMovementBeforeChunkUpdate = 25f;
@@ -56,13 +56,13 @@ namespace LilLycanLord_Official
         //* ╔═══════════════╗
         //* ║ Monobehaviour ║
         //* ╚═══════════════╝
-	    // Any Monobehaviour functions should be placed here.
-        void Awake() 
+        // Any Monobehaviour functions should be placed here.
+        void Awake()
         {
 
         }
 
-        void Start() 
+        void Start()
         {
             mapGenerator = GetComponent<MapGenerator>();
             int chunkSize = mapGenerator.mapChunkSize - 1;
@@ -73,7 +73,7 @@ namespace LilLycanLord_Official
             UpdateVisibleChunks(maxViewDistance);
         }
 
-        void Update() 
+        void Update()
         {
             int chunkSize = mapGenerator.mapChunkSize - 1;
             viewerPosition = new Vector2(viewer.position.x / terrainScale.x, viewer.position.z / terrainScale.z);
@@ -95,34 +95,36 @@ namespace LilLycanLord_Official
         {
             int chunkSize = mapGenerator.mapChunkSize - 1;
 
-            for (int i = 0; i < terrainChunksVisibleLastUpdate.Count; i++) 
+            for (int i = 0; i < terrainChunksVisibleLastUpdate.Count; i++)
             {
                 terrainChunksVisibleLastUpdate[i].SetVisible(false);
             }
             terrainChunksVisibleLastUpdate.Clear();
-                
+
             int currentChunkXCoordinate = Mathf.RoundToInt(viewerPosition.x / chunkSize);
             int currentChunkYCoordinate = Mathf.RoundToInt(viewerPosition.y / chunkSize);
 
-            for (int yOffset = -chunksVisibleInViewDistance; yOffset <= chunksVisibleInViewDistance; yOffset++) 
+            for (int yOffset = -chunksVisibleInViewDistance; yOffset <= chunksVisibleInViewDistance; yOffset++)
             {
                 for (int xOffset = -chunksVisibleInViewDistance; xOffset <= chunksVisibleInViewDistance; xOffset++)
                 {
                     Vector2 viewedChunkCoordinate = new Vector2(currentChunkXCoordinate + xOffset, currentChunkYCoordinate + yOffset);
 
-                    if (terrainChunkDictionary.ContainsKey(viewedChunkCoordinate)) 
+                    if (terrainChunkDictionary.ContainsKey(viewedChunkCoordinate))
                     {
                         terrainChunkDictionary[viewedChunkCoordinate].UpdateTerrainChunk(viewDistance);
-                        if (terrainChunkDictionary[viewedChunkCoordinate].IsVisible()) 
+                        if (terrainChunkDictionary[viewedChunkCoordinate].IsVisible())
                         {
                             terrainChunksVisibleLastUpdate.Add(terrainChunkDictionary[viewedChunkCoordinate]);
                         }
-                    } else {
-                        terrainChunkDictionary.Add(viewedChunkCoordinate, 
-                        new TerrainChunk(viewedChunkCoordinate, 
-                                         chunkSize, 
+                    }
+                    else
+                    {
+                        terrainChunkDictionary.Add(viewedChunkCoordinate,
+                        new TerrainChunk(viewedChunkCoordinate,
+                                         chunkSize,
                                          terrainChunkPool,
-                                         terrainMeshMaterial, 
+                                         terrainMeshMaterial,
                                          levelsOfDetail,
                                          terrainScale
                         ));
@@ -135,9 +137,9 @@ namespace LilLycanLord_Official
         //* ╔════════════════════════════════╗
         //* ║ Virtual / Overridden Functions ║
         //* ╚════════════════════════════════╝
-	    // Any Abstract/virtual functions or overrides should be placed here.
+        // Any Abstract/virtual functions or overrides should be placed here.
 
-        public class TerrainChunk 
+        public class TerrainChunk
         {
             //* ╔════════════╗
             //* ║ Components ║
@@ -158,6 +160,8 @@ namespace LilLycanLord_Official
 
             List<LODInfo> levelsOfDetail;
             List<ChunkLODMesh> LODMeshes;
+            ChunkLODMesh activeCollisionMesh;
+
             MapData mapData;
             bool mapDataReceived;
             int previousLevelOfDetail = -1;
@@ -167,7 +171,7 @@ namespace LilLycanLord_Official
             //* ╚══════════╝
             // Any non-component READ-ONLY variables SHOWN in the Inspector should be placed here.
             // [Header("Displays")]
-        
+
             //* ╔════════╗
             //* ║ Fields ║
             //* ╚════════╝
@@ -181,17 +185,17 @@ namespace LilLycanLord_Official
             // Any Monobehaviour functions should be placed here.
             // void Awake() 
             // {
-            
+
             // }
 
             // void Start() 
             // {
-            
+
             // }
 
             // void Update() 
             // {
-            
+
             // }
 
             //* ╔═════════════════════╗
@@ -203,11 +207,6 @@ namespace LilLycanLord_Official
             {
                 this.levelsOfDetail = levelsOfDetail;
                 this.terrainScale = terrainScale;
-                LODMeshes = new List<ChunkLODMesh>();
-                foreach(LODInfo levelOfDetail in levelsOfDetail) 
-                {
-                    LODMeshes.Add(new ChunkLODMesh(levelOfDetail.levelOfDetail, () => UpdateTerrainChunk(maxViewDistance)));
-                }
 
                 position = coordinates * size;
                 bounds = new Bounds(position, Vector2.one * size);
@@ -223,12 +222,22 @@ namespace LilLycanLord_Official
                 meshObject.transform.parent = parent;
                 meshObject.transform.localScale = terrainScale;
 
+                LODMeshes = new List<ChunkLODMesh>();
+                foreach (LODInfo levelOfDetail in levelsOfDetail)
+                {
+                    LODMeshes.Add(new ChunkLODMesh(levelOfDetail.levelOfDetail, () => UpdateTerrainChunk(maxViewDistance)));
+                    if (levelOfDetail.useForCollider)
+                    {
+                        activeCollisionMesh = LODMeshes[LODMeshes.Count - 1];
+                    }
+                }
+
                 SetVisible(false);
 
                 mapGenerator.RequestMapData(position, OnMapDataReceived);
             }
 
-            void OnMapDataReceived(MapData mapData) 
+            void OnMapDataReceived(MapData mapData)
             {
                 this.mapData = mapData;
                 mapDataReceived = true;
@@ -239,39 +248,50 @@ namespace LilLycanLord_Official
                 UpdateTerrainChunk(maxViewDistance);
             }
 
-            public void UpdateTerrainChunk(float viewDistance) 
+            public void UpdateTerrainChunk(float viewDistance)
             {
-                if(!mapDataReceived) return;
+                if (!mapDataReceived) return;
 
                 float viewerDistanceFromNearestEdge = Mathf.Sqrt(bounds.SqrDistance(viewerPosition));
                 bool visible = viewerDistanceFromNearestEdge <= viewDistance;
 
-                if(visible) 
+                if (visible)
                 {
                     int currentLevelOfDetail = 0;
-                    for (int i = 0; i < levelsOfDetail.Count - 1; i++) 
+                    for (int i = 0; i < levelsOfDetail.Count - 1; i++)
                     {
-                        if (viewerDistanceFromNearestEdge > levelsOfDetail[i].chunkDistanceThreshold) 
+                        if (viewerDistanceFromNearestEdge > levelsOfDetail[i].chunkDistanceThreshold)
                         {
                             currentLevelOfDetail = i + 1;
-                        } 
-                        else 
+                        }
+                        else
                         {
                             break;
                         }
                     }
 
-                    if(currentLevelOfDetail != previousLevelOfDetail) 
+                    if (currentLevelOfDetail != previousLevelOfDetail)
                     {
-                        if (LODMeshes[currentLevelOfDetail].hasMesh) 
+                        if (LODMeshes[currentLevelOfDetail].hasMesh)
                         {
                             previousLevelOfDetail = currentLevelOfDetail;
                             meshFilter.mesh = LODMeshes[currentLevelOfDetail].mesh;
-                            meshCollider.sharedMesh = LODMeshes[currentLevelOfDetail].mesh;
-                        } 
-                        else if (!LODMeshes[currentLevelOfDetail].hasRequestedMesh) 
+                        }
+                        else if (!LODMeshes[currentLevelOfDetail].hasRequestedMesh)
                         {
                             LODMeshes[currentLevelOfDetail].RequestMesh(mapData);
+                        }
+                    }
+
+                    if (currentLevelOfDetail == 0)
+                    {
+                        if (activeCollisionMesh.hasMesh)
+                        {
+                            meshCollider.sharedMesh = activeCollisionMesh.mesh;
+                        }
+                        else if (!activeCollisionMesh.hasRequestedMesh)
+                        {
+                            activeCollisionMesh.RequestMesh(mapData);
                         }
                     }
 
@@ -281,12 +301,12 @@ namespace LilLycanLord_Official
                 SetVisible(visible);
             }
 
-            public void SetVisible(bool visible) 
+            public void SetVisible(bool visible)
             {
                 meshObject.SetActive(visible);
             }
 
-            public bool IsVisible() 
+            public bool IsVisible()
             {
                 return meshObject.activeSelf;
             }
@@ -298,7 +318,7 @@ namespace LilLycanLord_Official
 
         }
 
-        class ChunkLODMesh 
+        class ChunkLODMesh
         {
             public Mesh mesh;
             public bool hasRequestedMesh;
@@ -308,13 +328,13 @@ namespace LilLycanLord_Official
             private int levelOfDetail;
             private System.Action callback;
 
-            public ChunkLODMesh(int levelOfDetail, System.Action callback) 
+            public ChunkLODMesh(int levelOfDetail, System.Action callback)
             {
                 this.levelOfDetail = levelOfDetail;
                 this.callback = callback;
             }
 
-            void OnMeshDataReceived(MeshData meshData) 
+            void OnMeshDataReceived(MeshData meshData)
             {
                 mesh = meshData.CreateMesh();
                 hasMesh = true;
@@ -322,7 +342,7 @@ namespace LilLycanLord_Official
                 callback();
             }
 
-            public void RequestMesh(MapData mapData) 
+            public void RequestMesh(MapData mapData)
             {
                 this.mapData = mapData;
                 hasRequestedMesh = true;
@@ -331,16 +351,18 @@ namespace LilLycanLord_Official
         }
 
         [System.Serializable]
-        public struct LODInfo 
+        public struct LODInfo
         {
             public int levelOfDetail;
             public float chunkDistanceThreshold;
+            public bool useForCollider;
 
-            public LODInfo(int levelOfDetail, float chunkDistanceThreshold) 
+            public LODInfo(int levelOfDetail, float chunkDistanceThreshold, bool useForCollider)
             {
                 this.levelOfDetail = levelOfDetail;
                 this.chunkDistanceThreshold = chunkDistanceThreshold;
+                this.useForCollider = useForCollider;
             }
         }
-    }    
+    }
 }

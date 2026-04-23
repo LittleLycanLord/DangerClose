@@ -9,23 +9,23 @@ namespace LilLycanLord_Official
         //* ╔════════════╗
         //* ║ Components ║
         //* ╚════════════╝
-	    // Any references to any component/class should be placed here, serialized or not.
+        // Any references to any component/class should be placed here, serialized or not.
 
         //* ╔════════════╗
         //* ║ Attributes ║
         //* ╚════════════╝
-	    // Any non-component variables NOT SHOWN in the Inspector should be placed here.
+        // Any non-component variables NOT SHOWN in the Inspector should be placed here.
 
         //* ╔══════════╗
         //* ║ Displays ║
         //* ╚══════════╝
         // Any non-component READ-ONLY variables SHOWN in the Inspector should be placed here.
-	    // [Header("Displays")]
-	
+        // [Header("Displays")]
+
         //* ╔════════╗
         //* ║ Fields ║
         //* ╚════════╝
-	    // Any non-component READ-WRITE variables SHOWN in the Inspector should be placed here.
+        // Any non-component READ-WRITE variables SHOWN in the Inspector should be placed here.
         // [Space(10)]
         // [Header("Fields")]
 
@@ -35,17 +35,17 @@ namespace LilLycanLord_Official
         // Any Monobehaviour functions should be placed here.
         // void Awake() 
         // {
-        
+
         // }
 
         // void Start() 
         // {
-        
+
         // }
 
         // void Update() 
         // {
-        
+
         // }
 
         //* ╔═════════════════════╗
@@ -84,7 +84,7 @@ namespace LilLycanLord_Official
         //* ╔════════════════════════════════╗
         //* ║ Virtual / Overridden Functions ║
         //* ╚════════════════════════════════╝
-	    // Any Abstract/virtual functions or overrides should be placed here.
+        // Any Abstract/virtual functions or overrides should be placed here.
 
     }
 }

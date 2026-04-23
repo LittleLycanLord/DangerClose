@@ -17,15 +17,21 @@ namespace LilLycanLord_Official
         //* ║ Attributes ║
         //* ╚════════════╝
         // Any non-component variables NOT SHOWN in the Inspector should be placed here.
-        public static readonly int[] LODIncrements = new[] {1, 2, 4, 6, 8, 10, 12};
-        //! NOTE: mapChunkSize must be divisible by all values in LODIncrements to avoid errors. Formula: LCM + 1 (for the last vertex) = mapChunkSize. Example: LCM(1, 2, 4, 6, 8, 10, 12) = 120 + 1 = 121, so mapChunkSize could be 121, 241, etc.
+        public static readonly int[] SmoothLODIncrements = new[] { 1, 2, 4, 6, 8, 10, 12 };
+        public static readonly int[] FlatShadedLODIncrements = new[] { 1, 2, 4, 6, 8, 12 };
+        //! NOTE: mapChunkSize + 1 must be divisible by every active increment to avoid LOD seam/index issues.
+
+        public static int[] GetLODIncrements(bool useFlatShading)
+        {
+            return useFlatShading ? FlatShadedLODIncrements : SmoothLODIncrements;
+        }
 
         //* ╔══════════╗
         //* ║ Displays ║
         //* ╚══════════╝
         // Any non-component READ-ONLY variables SHOWN in the Inspector should be placed here.
         // [Header("Displays")]
-	
+
         //* ╔════════╗
         //* ║ Fields ║
         //* ╚════════╝
@@ -39,17 +45,17 @@ namespace LilLycanLord_Official
         // Any Monobehaviour functions should be placed here.
         // void Awake() 
         // {
-        
+
         // }
 
         // void Start() 
         // {
-        
+
         // }
 
         // void Update() 
         // {
-        
+
         // }
 
         //* ╔═════════════════════╗
@@ -57,11 +63,12 @@ namespace LilLycanLord_Official
         //* ╚═════════════════════╝
         // Any Non-Monobehaviour/custom functions should be placed here.
         // Note: Abstract/virtual functions or overrides have a separate section.
-        public static MeshData GenerateTerrainMesh(float[,] heightMap, float heightMultiplier, AnimationCurve heightCurve, int levelOfDetail)
+        public static MeshData GenerateTerrainMesh(float[,] heightMap, float heightMultiplier, AnimationCurve heightCurve, int levelOfDetail, bool useFlatShading)
         {
             AnimationCurve localHeightCurve = new AnimationCurve(heightCurve.keys);
-            
-            int meshSimplificationIncrement = LODIncrements[Mathf.Clamp(levelOfDetail, 0, LODIncrements.Length - 1)];
+
+            int[] lodIncrements = GetLODIncrements(useFlatShading);
+            int meshSimplificationIncrement = lodIncrements[Mathf.Clamp(levelOfDetail, 0, lodIncrements.Length - 1)];
 
             int borderedSize = heightMap.GetLength(0);
             int meshSize = borderedSize - 2 * meshSimplificationIncrement;
@@ -72,14 +79,15 @@ namespace LilLycanLord_Official
 
             int verticesPerLine = (meshSize - 1) / meshSimplificationIncrement + 1;
 
-            MeshData meshData = new MeshData(verticesPerLine);
+            MeshData meshData = new MeshData(verticesPerLine, useFlatShading);
+
             int[,] vertexIndicesMap = new int[borderedSize, borderedSize];
             int meshVertexIndex = 0;
             int outOfMeshVertexIndex = -1;
 
-            for (int y = 0; y < borderedSize; y+= meshSimplificationIncrement)
+            for (int y = 0; y < borderedSize; y += meshSimplificationIncrement)
             {
-                for (int x = 0; x < borderedSize; x+= meshSimplificationIncrement)
+                for (int x = 0; x < borderedSize; x += meshSimplificationIncrement)
                 {
                     bool isOutOfMeshVertex = y == 0 || y == borderedSize - 1 || x == 0 || x == borderedSize - 1;
                     if (isOutOfMeshVertex)
@@ -95,9 +103,9 @@ namespace LilLycanLord_Official
                 }
             }
 
-            for (int y = 0; y < borderedSize; y+= meshSimplificationIncrement)
+            for (int y = 0; y < borderedSize; y += meshSimplificationIncrement)
             {
-                for (int x = 0; x < borderedSize; x+= meshSimplificationIncrement)
+                for (int x = 0; x < borderedSize; x += meshSimplificationIncrement)
                 {
                     int vertexIndex = vertexIndicesMap[x, y];
 
@@ -107,7 +115,7 @@ namespace LilLycanLord_Official
 
                     meshData.AddVertex(vertexPosition, percent, vertexIndex);
 
-                    if(x < borderedSize - 1 && y < borderedSize - 1)
+                    if (x < borderedSize - 1 && y < borderedSize - 1)
                     {
                         int a = vertexIndicesMap[x, y];
                         int b = vertexIndicesMap[x + meshSimplificationIncrement, y];
@@ -117,26 +125,28 @@ namespace LilLycanLord_Official
                         meshData.AddTriangle(a, d, c);
                         meshData.AddTriangle(d, a, b);
                     }
-                    
+
                     vertexIndex++;
 
                 }
             }
 
+            meshData.FinalizeMeshData();
             return meshData;
         }
 
         //* ╔════════════════════════════════╗
         //* ║ Virtual / Overridden Functions ║
         //* ╚════════════════════════════════╝
-	    // Any Abstract/virtual functions or overrides should be placed here.
+        // Any Abstract/virtual functions or overrides should be placed here.
     }
 
-    public class MeshData 
+    public class MeshData
     {
         Vector3[] vertices;
         int[] triangles;
         Vector2[] uvs;
+        Vector3[] bakedNormals;
 
         Vector3[] outOfMeshVertices;
         int[] outOfMeshTriangles;
@@ -144,8 +154,11 @@ namespace LilLycanLord_Official
         int triangleIndex;
         int outOfMeshTriangleIndex;
 
-        public MeshData(int verticesPerLine)
+        bool useFlatShading;
+
+        public MeshData(int verticesPerLine, bool useFlatShading = false)
         {
+            this.useFlatShading = useFlatShading;
             vertices = new Vector3[verticesPerLine * verticesPerLine];
             uvs = new Vector2[verticesPerLine * verticesPerLine];
             triangles = new int[(verticesPerLine - 1) * (verticesPerLine - 1) * 6];
@@ -155,7 +168,7 @@ namespace LilLycanLord_Official
 
         public void AddVertex(Vector3 vertexPosition, Vector2 uv, int vertexIndex)
         {
-            if(vertexIndex < 0)
+            if (vertexIndex < 0)
             {
                 outOfMeshVertices[-vertexIndex - 1] = vertexPosition;
             }
@@ -168,7 +181,7 @@ namespace LilLycanLord_Official
 
         public void AddTriangle(int a, int b, int c)
         {
-            if(a < 0 || b < 0 || c < 0)
+            if (a < 0 || b < 0 || c < 0)
             {
                 outOfMeshTriangles[outOfMeshTriangleIndex] = a;
                 outOfMeshTriangles[outOfMeshTriangleIndex + 1] = b;
@@ -211,11 +224,11 @@ namespace LilLycanLord_Official
                 int vertexIndexC = outOfMeshTriangles[normalTriangleIndex + 2];
 
                 Vector3 triangleNormal = SurfaceNormalFromIndices(vertexIndexA, vertexIndexB, vertexIndexC);
-                if(vertexIndexA >= 0)
+                if (vertexIndexA >= 0)
                     vertexNormals[vertexIndexA] += triangleNormal;
-                if(vertexIndexB >= 0)
+                if (vertexIndexB >= 0)
                     vertexNormals[vertexIndexB] += triangleNormal;
-                if(vertexIndexC >= 0)
+                if (vertexIndexC >= 0)
                     vertexNormals[vertexIndexC] += triangleNormal;
             }
 
@@ -239,13 +252,53 @@ namespace LilLycanLord_Official
             return Vector3.Cross(sideAB, sideAC).normalized;
         }
 
+        public void FinalizeMeshData()
+        {
+            if (useFlatShading)
+            {
+                FlatShading();
+            }
+            else
+            {
+                BakeNormals();
+            }
+        }
+
+        void BakeNormals()
+        {
+            bakedNormals = CalculateNormals();
+        }
+
+        private void FlatShading()
+        {
+            Vector3[] flatShadedVertices = new Vector3[triangles.Length];
+            Vector2[] flatShadedUVs = new Vector2[triangles.Length];
+
+            for (int i = 0; i < triangles.Length; i++)
+            {
+                flatShadedVertices[i] = vertices[triangles[i]];
+                flatShadedUVs[i] = uvs[triangles[i]];
+                triangles[i] = i;
+            }
+
+            vertices = flatShadedVertices;
+            uvs = flatShadedUVs;
+        }
+
         public Mesh CreateMesh()
         {
             Mesh mesh = new Mesh();
             mesh.vertices = vertices;
             mesh.triangles = triangles;
             mesh.uv = uvs;
-            mesh.normals = CalculateNormals();
+            if (useFlatShading)
+            {
+                mesh.RecalculateNormals();
+            }
+            else
+            {
+                mesh.normals = bakedNormals;
+            }
             return mesh;
         }
     }

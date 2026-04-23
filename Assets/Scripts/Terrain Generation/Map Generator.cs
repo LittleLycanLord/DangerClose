@@ -10,20 +10,21 @@ namespace LilLycanLord_Official
     public class MapGenerator : MonoBehaviour
     {
         public enum DrawMode { NoiseMap, ColorMap, FalloffMap, Mesh }
-       
+
 
         //* ╔════════════╗
         //* ║ Components ║
         //* ╚════════════╝
-	    // Any references to any component/class should be placed here, serialized or not.
+        // Any references to any component/class should be placed here, serialized or not.
         private MapDisplay mapDisplay;
         //* ╔════════════╗
         //* ║ Attributes ║
         //* ╚════════════╝
-	    // Any non-component variables NOT SHOWN in the Inspector should be placed here.
+        // Any non-component variables NOT SHOWN in the Inspector should be placed here.
         private Queue<MapThreadInfo<MapData>> mapDataThreadInfoQueue = new Queue<MapThreadInfo<MapData>>();
         private Queue<MapThreadInfo<MeshData>> meshDataThreadInfoQueue = new Queue<MapThreadInfo<MeshData>>();
         private float[,] falloffMap;
+        private bool hasLoggedFlatChunkSizeAdjustment;
 
         //* ╔══════════╗
         //* ║ Displays ║
@@ -31,7 +32,7 @@ namespace LilLycanLord_Official
         [Header("Displays")]
         [Tooltip("Determined by the LCM + 1 of the LOD increments in MeshGenerator.cs.")]
         public int mapChunkSize = 241;
-	    // Any non-component READ-ONLY variables SHOWN in the Inspector should be placed here.
+        // Any non-component READ-ONLY variables SHOWN in the Inspector should be placed here.
 
         //* ╔════════╗
         //* ║ Fields ║
@@ -42,6 +43,8 @@ namespace LilLycanLord_Official
         public DrawMode drawMode = DrawMode.ColorMap;
         public Noise.NormalizationMode normalizationMode = Noise.NormalizationMode.Local;
         public bool useFalloff = false;
+        [Tooltip("Turning flat shading on will require a smaller map chunk size to avoid performance issues.")]
+        public bool useFlatShading = false;
         public FalloffSettings falloffSettings = new FalloffSettings();
         public List<TerrainType> regions = new List<TerrainType>();
 
@@ -64,24 +67,27 @@ namespace LilLycanLord_Official
         public AnimationCurve meshHeightCurve;
         [Range(0, 6)]
         public int meshLODPreview = 1;
-	    // Any non-component READ-WRITE variables SHOWN in the Inspector should be placed here.
+        // Any non-component READ-WRITE variables SHOWN in the Inspector should be placed here.
 
         //* ╔═══════════════╗
         //* ║ Monobehaviour ║
         //* ╚═══════════════╝
-	    // Any Monobehaviour functions should be placed here.
-        void Awake() { 
-            mapChunkSize = CalculateLCM(MeshGenerator.LODIncrements) * mapChunkSizeMultiple + 1 - 2;
+        // Any Monobehaviour functions should be placed here.
+        void Awake()
+        {
+            mapChunkSize = CalculateMapChunkSize(useFlatShading, mapChunkSizeMultiple);
             FalloffGenerator.ApplySettings(falloffSettings);
             falloffMap = FalloffGenerator.GenerateFalloffMap(mapChunkSize);
         }
 
-        void Start() { 
+        void Start()
+        {
             mapDisplay = GetComponent<MapDisplay>();
         }
 
-        void Update() { 
-            if(mapDataThreadInfoQueue.Count > 0)
+        void Update()
+        {
+            if (mapDataThreadInfoQueue.Count > 0)
             {
                 for (int i = 0; i < mapDataThreadInfoQueue.Count; i++)
                 {
@@ -90,7 +96,7 @@ namespace LilLycanLord_Official
                 }
             }
 
-            if(meshDataThreadInfoQueue.Count > 0)
+            if (meshDataThreadInfoQueue.Count > 0)
             {
                 for (int i = 0; i < meshDataThreadInfoQueue.Count; i++)
                 {
@@ -103,16 +109,17 @@ namespace LilLycanLord_Official
         //* ╔═════════════════════╗
         //* ║ Non - Monobehaviour ║
         //* ╚═════════════════════╝
-	    // Any Non-Monobehaviour/custom functions should be placed here.
-	    // Note: Abstract/virtual functions or overrides have a separate section.
+        // Any Non-Monobehaviour/custom functions should be placed here.
+        // Note: Abstract/virtual functions or overrides have a separate section.
         public void DrawMapInEditor()
         {
             FalloffGenerator.ApplySettings(falloffSettings);
             MapData mapData = GenerateMapData(Vector2.zero);
-            
+
             if (mapDisplay != null)
             {
-                switch(drawMode) {
+                switch (drawMode)
+                {
                     case DrawMode.NoiseMap:
                         mapDisplay.DrawTexture(TextureGenerator.TextureFromHeightMap(mapData.heightMap));
                         break;
@@ -124,7 +131,7 @@ namespace LilLycanLord_Official
                         mapDisplay.DrawTexture(TextureGenerator.TextureFromHeightMap(falloffMap));
                         break;
                     case DrawMode.Mesh:
-                        mapDisplay.DrawMesh(MeshGenerator.GenerateTerrainMesh(mapData.heightMap, meshHeightMultiplier, meshHeightCurve, meshLODPreview), TextureGenerator.TextureFromColorMap(mapData.colorMap, mapChunkSize, mapChunkSize));
+                        mapDisplay.DrawMesh(MeshGenerator.GenerateTerrainMesh(mapData.heightMap, meshHeightMultiplier, meshHeightCurve, meshLODPreview, useFlatShading), TextureGenerator.TextureFromColorMap(mapData.colorMap, mapChunkSize, mapChunkSize));
                         break;
                 }
             }
@@ -133,7 +140,7 @@ namespace LilLycanLord_Official
         public MapData GenerateMapData(Vector2 center)
         {
             FalloffGenerator.ApplySettings(falloffSettings);
-            int calculatedMapChunkSize = CalculateLCM(MeshGenerator.LODIncrements) * mapChunkSizeMultiple + 1 - 2;
+            int calculatedMapChunkSize = CalculateMapChunkSize(useFlatShading, mapChunkSizeMultiple);
             if (mapChunkSize != calculatedMapChunkSize)
             {
                 mapChunkSize = calculatedMapChunkSize;
@@ -143,7 +150,7 @@ namespace LilLycanLord_Official
             int borderedMapSize = mapChunkSize + 2;
 
             float[,] noiseMap = Noise.GenerateNoiseMap(borderedMapSize, borderedMapSize, seed, scale, octaves, persistence, lacunarity, center + offset, normalizationMode);
-            Color [] colorMap = new Color[mapChunkSize * mapChunkSize];
+            Color[] colorMap = new Color[mapChunkSize * mapChunkSize];
 
             if (regions != null && regions.Count > 1)
             {
@@ -158,16 +165,16 @@ namespace LilLycanLord_Official
                 regions[lastRegionIndex] = lowestRegion;
             }
 
-            for(int y = 0; y < mapChunkSize; y++)
+            for (int y = 0; y < mapChunkSize; y++)
             {
                 for (int x = 0; x < mapChunkSize; x++)
                 {
                     int borderedX = x + 1;
                     int borderedY = y + 1;
 
-                    if(useFalloff)
+                    if (useFalloff)
                     {
-                        if(falloffMap == null || falloffMap.GetLength(0) != mapChunkSize || falloffMap.GetLength(1) != mapChunkSize)
+                        if (falloffMap == null || falloffMap.GetLength(0) != mapChunkSize || falloffMap.GetLength(1) != mapChunkSize)
                         {
                             falloffMap = FalloffGenerator.GenerateFalloffMap(mapChunkSize);
                         }
@@ -220,7 +227,7 @@ namespace LilLycanLord_Official
 
         public void RequestMeshData(MapData mapData, int levelOfDetail, Action<MeshData> callback)
         {
-            ThreadStart threadStart = delegate 
+            ThreadStart threadStart = delegate
             {
                 MeshDataThread(mapData, levelOfDetail, callback);
             };
@@ -230,7 +237,7 @@ namespace LilLycanLord_Official
 
         private void MeshDataThread(MapData mapData, int levelOfDetail, Action<MeshData> callback)
         {
-            MeshData meshData = MeshGenerator.GenerateTerrainMesh(mapData.heightMap, meshHeightMultiplier, meshHeightCurve, levelOfDetail);
+            MeshData meshData = MeshGenerator.GenerateTerrainMesh(mapData.heightMap, meshHeightMultiplier, meshHeightCurve, levelOfDetail, useFlatShading);
             lock (meshDataThreadInfoQueue)
             {
                 meshDataThreadInfoQueue.Enqueue(new MapThreadInfo<MeshData>(callback, meshData));
@@ -241,13 +248,50 @@ namespace LilLycanLord_Official
         {
             if (numbers == null || numbers.Length == 0)
                 return 1;
-            
+
             int lcm = numbers[0];
             for (int i = 1; i < numbers.Length; i++)
             {
                 lcm = (lcm * numbers[i]) / GCD(lcm, numbers[i]);
             }
             return lcm;
+        }
+
+        private int CalculateMapChunkSize(bool isFlatShadingEnabled, int chunkMultiple)
+        {
+            int[] activeIncrements = MeshGenerator.GetLODIncrements(isFlatShadingEnabled);
+            int lcm = CalculateLCM(activeIncrements);
+            int preferredChunkSize = lcm * Mathf.Max(1, chunkMultiple) - 1;
+
+            if (!isFlatShadingEnabled)
+            {
+                return preferredChunkSize;
+            }
+
+            int maxFlatShadedChunkSize = GetMaxFlatShadedChunkSize();
+            int maxDivisibleChunkSize = ((maxFlatShadedChunkSize + 1) / lcm) * lcm - 1;
+
+            if (maxDivisibleChunkSize < 1)
+            {
+                Debug.LogWarning("Flat shading has no valid chunk size for the current LOD increments. Falling back to the preferred chunk size.");
+                return preferredChunkSize;
+            }
+
+            int resolvedChunkSize = maxDivisibleChunkSize;
+            if (preferredChunkSize > maxDivisibleChunkSize && !hasLoggedFlatChunkSizeAdjustment)
+            {
+                Debug.LogWarning($"Flat shading reduced mapChunkSize from {preferredChunkSize} to {resolvedChunkSize} to stay within Unity's 16-bit mesh index limits.");
+                hasLoggedFlatChunkSizeAdjustment = true;
+            }
+
+            return resolvedChunkSize;
+        }
+
+        private int GetMaxFlatShadedChunkSize()
+        {
+            const int maxVertices = 65535;
+            int edgeVertexCount = Mathf.FloorToInt(Mathf.Sqrt(maxVertices / 6f));
+            return edgeVertexCount + 1;
         }
 
         private int GCD(int a, int b)
@@ -264,7 +308,7 @@ namespace LilLycanLord_Official
         //* ╔════════════════════════════════╗
         //* ║ Virtual / Overridden Functions ║
         //* ╚════════════════════════════════╝
-	    // Any Abstract/virtual functions or overrides should be placed here.
+        // Any Abstract/virtual functions or overrides should be placed here.
 
         struct MapThreadInfo<T>
         {
@@ -290,7 +334,7 @@ namespace LilLycanLord_Official
             }
         }
     }
-    
+
     public struct MapData
     {
         public readonly float[,] heightMap;

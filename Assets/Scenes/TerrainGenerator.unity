@@ -968,10 +968,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a298b98b54a460c4a86c10270a714261, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LilLycanLord_Official.MapGenerator
-  mapChunkSize: 241
+  mapChunkSize: 239
   drawMode: 3
   normalizationMode: 1
   useFalloff: 0
+  useFlatShading: 1
   falloffSettings:
     generationMethod: 1
     classicCurveA: 1.35
@@ -1080,18 +1081,25 @@ MonoBehaviour:
   levelsOfDetail:
   - levelOfDetail: 0
     chunkDistanceThreshold: 60
+    useForCollider: 1
   - levelOfDetail: 1
     chunkDistanceThreshold: 120
+    useForCollider: 0
   - levelOfDetail: 2
     chunkDistanceThreshold: 240
+    useForCollider: 0
   - levelOfDetail: 3
     chunkDistanceThreshold: 360
+    useForCollider: 0
   - levelOfDetail: 4
     chunkDistanceThreshold: 480
+    useForCollider: 0
   - levelOfDetail: 5
     chunkDistanceThreshold: 600
+    useForCollider: 0
   - levelOfDetail: 6
     chunkDistanceThreshold: 720
+    useForCollider: 0
 --- !u!1 &761167494
 GameObject:
   m_ObjectHideFlags: 0
